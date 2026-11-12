@@ -1,0 +1,40 @@
+name: Publicar tablero
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Descomprimir tablero
+        run: unzip -q Tablero_Oportunidad_Agricola_GitHub.zip -d sitio
+
+      - name: Verificar datos
+        run: node sitio/tablero/verify.cjs
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: sitio/tablero
+
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
